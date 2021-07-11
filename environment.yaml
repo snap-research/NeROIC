@@ -1,0 +1,31 @@
+name: neroic
+channels:
+    - defaults
+    - pytorch
+dependencies:
+    - pip=21.2.4
+    - python=3.8.13
+    - pytorch=1.7.1=py3.8_cuda10.2.89_cudnn7.6.5_0
+    - torchvision=0.8.2
+    - cudatoolkit=10.2
+    - pillow=9.2.0
+    - pip:
+        - ConfigArgParse==1.5.1
+        - einops==0.3.0
+        - imageio==2.9.0
+        - imageio-ffmpeg==0.4.2
+
+        - matplotlib==3.3.3
+        - numpy==1.19.5
+        - open3d==0.12.0
+        - opencv-python==4.5.1.48
+        - OpenEXR==1.3.2
+        - pytorch-lightning==1.4.2
+        - pytorch3d==0.3.0
+        - scipy==1.4.1
+
+        - tensorboard==2.7.0
+        - protobuf==3.20.0
+        - tqdm==4.42.1
+        - kornia==0.4.1
+        - torchmetrics==0.4.1
