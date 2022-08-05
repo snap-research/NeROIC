@@ -4,22 +4,22 @@ Our model currently only support 360-degree data. Fast-forward data is not suppo
 
 Please install [COLMAP](https://colmap.github.io/) before preparing your own data. 
 
-To begin with, organize your dataset as the following structure:
+To begin with, organize your dataset as the following structure (see BYOD_example at [here](https://drive.google.com/drive/folders/1HzxaO9CcQOcUOp32xexVYFtsyKKULR7T?usp=sharing)):
 ```
 data\
--- images_unmasked\
-    -- 1.jpg
-    -- 2.jpg
-    -- ...
--- images_masks\
-    -- 1.jpg
-    -- 2.jpg
-    -- ...
--- (optional) sparse\
-    -- 0\
-        -- images.bin
-        -- points3D.bin
-        -- cameras.bin
+|-- images_unmasked\
+    |-- 1.jpg
+    |-- 2.jpg
+    |-- ...
+|-- images_masks\
+    |-- 1.jpg
+    |-- 2.jpg
+    |-- ...
+|-- (optional) sparse\
+    |-- 0\
+        |-- images.bin
+        |-- points3D.bin
+        |-- cameras.bin
 ```
 
 the image masks should be B/W masks. If your images are collected from different places, it is strongly recommended to mask out the image backgrounds with white color.
