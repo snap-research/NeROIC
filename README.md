@@ -116,7 +116,7 @@ python test_relighting.py \
 
 ## Bring Your Own Data
 
-Coming Soon
+To train NeROIC with your own collected data, click [here](scripts/README.md).
 
 ## Model Overview
 

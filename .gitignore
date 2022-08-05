@@ -10,4 +10,5 @@ results
 temp
 assets/resources
 assets/sh_test
+configs/debug_*
 *.log
