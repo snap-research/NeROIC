@@ -15,7 +15,7 @@ conda activate neroic
 apt-get install graphicsmagick-imagemagick-compat
 ```
 
-* Download our example data at [here](https://drive.google.com/drive/folders/1HzxaO9CcQOcUOp32xexVYFtsyKKULR7T?usp=sharing).
+* Download our example data at [here](https://drive.google.com/drive/folders/1HzxaO9CcQOcUOp32xexVYFtsyKKULR7T?usp=sharing). (figure_dataset, milkbox_dataset and television_dataset)
 
 * Optimize the geometry network.
 
