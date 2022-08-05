@@ -47,6 +47,7 @@ def _minify(basedir, factors=[], resolutions=[], have_mask=False):
     if have_mask:
         maskdir = os.path.join(basedir, 'images_mask')
         masks = [os.path.join(maskdir, f) for f in sorted(os.listdir(maskdir))]
+        masks = [f for f in masks if is_image(f)]
         maskdir_orig = maskdir
     
     wd = os.getcwd()
@@ -196,8 +197,8 @@ class LLFFDataset(NeRFDataset):
         poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1,2,0])
         bds = poses_arr[:, -2:].transpose([1,0])
         
-        sh = poses[:2,4,0].astype(np.uint32)
-        
+        is_res_same = poses[0, 4, :].max() == poses[0, 4, :].min() and \
+            poses[1, 4, :].max() == poses[1, 4, :].min()
         sfx = ''
         
         if self.factor is not None and self.factor != 1:
@@ -205,10 +206,17 @@ class LLFFDataset(NeRFDataset):
             _minify(self.datadir, factors=[self.factor], have_mask=self.have_mask)
             resized = True
         elif self.width is not None:
-            self.factor = sh[1] / float(self.width)
-            self.height = sh[0] * self.width // sh[1]
-            _minify(self.datadir, resolutions=[[self.height, self.width]], have_mask=self.have_mask)
-            sfx = '_{}x{}'.format(self.width, self.height)
+            if is_res_same:
+                sh = poses[:2,4,0].astype(np.uint32)
+                self.factor = sh[1] / float(self.width)
+                self.height = sh[0] * self.width // sh[1]
+                _minify(self.datadir, resolutions=[[self.height, self.width]], have_mask=self.have_mask)
+                sfx = '_{}x{}'.format(self.width, self.height)
+            else:
+                sh = poses[:2,4,:].max(axis=-1).astype(np.int32)
+                self.factor = sh[1] / float(self.width)
+                _minify(self.datadir, factors=[self.factor], have_mask=self.have_mask)
+                sfx = '_{}'.format(self.factor)
             resized = True
         else:
             self.factor = 1
@@ -222,14 +230,23 @@ class LLFFDataset(NeRFDataset):
             if resized:
                 imgfiles = [os.path.splitext(f)[0]+".png" for f in imgfiles]
             imgfiles = [os.path.join(imgdir, f) for f in imgfiles]
+        elif os.path.exists(os.path.join(self.datadir, 'image_names.txt')):
+            imgfiles = open(os.path.join(self.datadir, 'image_names.txt'), "r").readlines()
+            imgfiles = [f.replace("\n", "") for f in imgfiles]
+            if resized:
+                imgfiles = [os.path.splitext(f)[0]+".png" for f in imgfiles]
+            imgfiles = [os.path.join(imgdir, f) for f in imgfiles]
         else:
             imgfiles = [os.path.join(imgdir, f) for f in sorted(os.listdir(imgdir)) if is_image(f)]
 
         assert(poses.shape[-1] == len(imgfiles)) # Image/Pose number does not match!
         
         if resized:
-            sh = imageio.imread(imgfiles[0]).shape
-            poses[:2, 4, :] = np.array(sh[:2]).reshape([2, 1])
+            if is_res_same:
+                sh = imageio.imread(imgfiles[0]).shape
+                poses[:2, 4, :] = np.array(sh[:2]).reshape([2, 1])
+            else:
+                poses[:2, 4, :] = np.floor(poses[:2, 4, :] * 1./self.factor + 1e-5)
             poses[2, 4, :] = poses[2, 4, :] * 1./self.factor
 
         def imread(f):
@@ -237,25 +254,30 @@ class LLFFDataset(NeRFDataset):
                 return imageio.imread(f, ignoregamma=True)
             else:
                 return imageio.imread(f)
+
         def imgf2maskf(img_file):
             mask_dir = os.path.dirname(img_file).replace("images", "images_mask")
             img_id = os.path.basename(img_file).split(".")[0]
             if os.path.exists(os.path.join(mask_dir, "%s-removebg-preview.png"%img_id)):
                 return os.path.join(mask_dir, "%s-removebg-preview.png"%img_id)
             else:
-                return os.path.join(mask_dir, "%s.png"%img_id)
+                return os.path.join(mask_dir, os.path.basename(img_file))
+
         def maskread(f, img, threshold=200):
             assert(os.path.exists(f))
             mask = imageio.imread(f)
             mask = cv2.resize(mask, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
-            return mask[...,3]>threshold # Add threshold to the mask
+            if mask.ndim == 3:
+                return mask[...,-1]>threshold # Add threshold to the mask
+            else:
+                return mask > threshold
 
         # find largest size for padding
         padding_sh = poses[:2,4,:].max(axis=-1).astype(np.int32)
         # print(imgfiles)
         imgs = [imread(f)[...,:3]/255. for f in imgfiles]
         for i in range(len(imgs)):
-            assert(imgs[i].shape[0] == poses[0, 4, i] and imgs[i].shape[1] == poses[1, 4, i]) # Image sizes and pose parameters don't match!
+            assert(np.abs(imgs[i].shape[:2]-poses[0:2, 4, i]).max() <= 1.5) # Image sizes and pose parameters don't match!
         print("Image size check finished.")
 
         # pad image with -1 to distinguish with valid pixels
