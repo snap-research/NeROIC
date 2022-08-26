@@ -1,6 +1,6 @@
 ## Bring Your Own Data
 
-Our model currently only support 360-degree data. Fast-forward data is not supported for now.
+Our model currently only support 360-degree data. Forward-Facing data is not supported for now.
 
 Please install [COLMAP](https://colmap.github.io/) before preparing your own data. 
 
