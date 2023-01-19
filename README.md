@@ -4,7 +4,7 @@ This repository is the official implementation of  the NeROIC model from [NeROIC
 
 This work has been tested on Ubuntu 20.04. 
 
-Our project page is https://formyfamily.github.io/NeROIC.
+Our project page is https://zfkuang.github.io/NeROIC.
 
 ## Quick Start
 * Install required libraries.
